@@ -1,46 +1,29 @@
-# TapeDeck 1.1 — sample-free web installer
+# TapeDeck 1.3 web installer
 
-Upload this entire directory to an HTTPS static host. Open index.html in a browser with Web MIDI SysEx support. There is no build step, backend, or external CDN. For a local preview: `python3 -m http.server 8768 --bind 127.0.0.1`, then visit http://127.0.0.1:8768/ (do not open index.html as a file).
+Sample-free custom firmware for M-VAVE FM-1. Identity FM-1_915. Includes matching source, GPL notices, browser sampler/uploader, and an eight-page workflow PDF.
 
-Connect one FM-1 by USB, click Connect, grant MIDI access, and click Install. The installer checks the downloaded package's SHA-256 and identity, writes via the existing Felucca USB-MIDI updater, and verifies the identity after restart. It supports resuming an interrupted loader write. A successful package download is not shown as a successful installation.
+Serve this directory over HTTPS or localhost. Open index.html in a browser supporting Web MIDI SysEx (desktop Chrome/Edge), connect one device, and explicitly press Install. Reload older tabs first: Install rechecks the manifest to reject stale releases. No public site has been deployed by this packaging step.
 
-This version contains no bundled sample recordings. Two user tape slots are available; import your own audio through sampler/index.html or record USB audio. Saved tapes I/II are preserved when updating. Legacy tape III remains in flash but is not selectable; back it up before upgrading. Unsaved audio and patterns are lost on restart. Patterns and sample properties remain session-only. The sample-free release does not erase arbitrary owners' saved audio.
+Before installing, SAVE or back up RAM recordings. Restart loses unsaved audio, patterns and settings. The two saved tape slots are preserved; legacy Tape III remains untouched but is not exposed. This is independent firmware, not an official M-VAVE release.
 
-## Files
+## 1.3 performance controls
 
-- `td-tapedeck-1.1.fwsc`: firmware, identity FM-1_913.
-- `td-manifest.json`: exact size and SHA-256 for integrity checking.
-- `td-source.zip`: matching firmware and installer source, generated headers and dependency sources, with build instructions.
-- `sampler/`: sample-free browser emulator, audio import and device upload interface.
-- `td-LICENSE`, `LICENSES/`, `td-LICENSING.md`: attribution and license texts.
+Upper printed keys: OP1/2/3 repeat the last chop at 1/8, 1/16, 1/32. OP4/5 shift the targeted deck down/up one octave immediately. OP6/PIT/GLO throw the combined mix into dotted-eighth/eighth/1/32 delay. MONO/POLY low-pass/high-pass the targeted deck. All are hold-to-activate; release restores the base state. Last chosen delay time remains for tails. Highest held chop/delay rate wins. The first upper key captures the selected tape until all are released. Controls do not write pattern events. HOME wins over held repeats until release.
 
-No private samples, older firmware packages, device backups, or private recording files are included. The firmware UI uses the OFL Inter Tight raster in this release. The page's serif styling uses the viewer's system fonts and ships no proprietary font.
+SEL (internally SCL, beside FX) is strictly hold-only: K1 monitor dB, K2 recording dB, K3 rhythmic rate, K4 gate. A tap never changes pages. SELECT rotary still changes BPM. SEL+OCT- reverse repeats; SEL+OCT+ ratchets. Unshifted OCT- random hold and OCT+ latch remain.
 
-The firmware is GPL-3.0-only with the third-party components documented in LICENSING.md. Keep the matching source download and license files available when redistributing the binary. Custom firmware is independent of M-VAVE.
+FX tap: delay, drive, reverb, flanger amounts. FX hold + lower keys 1-16: Granulize, Scatter, Tremolo, Reverse, Ring mod, Auto pan, Tape stop, Freeze, Wow/flutter, Wavefold, Flanger, Phaser, Reverb throw, Dropout, Distortion, Crush. Granulize is a two-micrograin live effect using 2 KiB history, not a long-buffer granular sampler. Effects process the combined tape mix; USB monitoring is mixed afterwards. The older buffered FX share a buffer; last pressed wins. New upper keys pressed under FX are ignored until release.
 
-Web MIDI requires user permission: https://developer.chrome.com/blog/web-midi-permission-prompt
+## Workflow
 
-## Final controls
+PRESETS chooses Tape I/II. PLAY toggles whole-tape loop. Lower keys play chops. SEQ+REC quantizes live entry; switch tapes to overdub the other lane. EDIT: step/slice/velocity/gate; REC clears step; EDIT+REC clears lane. ENV cycles playback/envelope/tone pages. GLOBAL cycles library/sample/device pages; library K1 chooses tape, PLAY previews, REC twice within 3 seconds deletes. SAVE writes captured audio to Tape II, replacing its saved sample; it does not save patterns.
 
-- GLOBAL cycles library / sample settings / device settings. Library K1 selects a tape; PLAY previews; REC twice within three seconds deletes it and stops playback. RAM labels mean unsaved recording; SAVE stores it in tape II. Deletion removes that slot's flash audio and its current pattern lane. It does not enlarge the fixed 80 KiB slots or the separate 32 KiB recording buffer.
-- GLOBAL sample knobs: pitch, level, playback mode, reverse. ENV exposes the full envelope/tone panels.
-- GLOBAL device knobs: BPM, rhythmic rate, swing, and key bank (1–16 / 17–32).
-- Hold OCT− for random chops at the current rate/gate/swing. Let go to stop retriggering; the last chop can finish. Random targets the tape selected when you start holding it.
-- OCT+ toggles latch for the selected tape. The last manually played chop repeats at the current rate/gate/swing; play another key to change it. Each populated tape can latch independently. Random temporarily overrides that tape's latch; release returns to latch. STOP/HOME clears all latches.
-- Pattern clocks continue during random/latch performance, with the performance effect taking priority on its own tape. Automatic repeats do not write into the pattern.
+Two fixed 80 KiB slots. Import: about 7.38 seconds per tape, 22.05 kHz mono IMA ADPCM. Capture: about 5.85 seconds, 11.025 kHz mono IMA ADPCM, 32 KiB RAM. No stock recordings. Deletion does not pool slot capacity. Browser storage is separate from device storage.
 
-The final release was tested with the real firmware compiled to WebAssembly: imports, overlapping tapes, live pattern recording, physical octave buttons, deletion confirmation/timeouts/reboot, and preserving other slots. Installer tests cover package hashes, explicit connect/install, multiple-device rejection and failure recovery. Hardware build memory checks pass. No device data is bundled in the release ZIP.
+USB monitoring defaults to -24 dB, recording to 0 dB; independent attenuation only, -60 means mute. Negative samples use signed master-gain arithmetic (critical 1.2 fix). Host input is excluded from USB return. A cable alone is not an active audio stream. The browser has its own MONITOR INPUT permission flow.
 
-## TapeDeck 1.1
+## Validation and limits
 
-The boot screen and USB device identify TapeDeck. USB audio sent to TapeDeck FM-1 is automatically monitored through its local outputs before and during REC, at the master volume. A USB IN lamp confirms an active stream; a cable alone is not an audio stream. The host input is excluded from the USB return to prevent a direct feedback loop. Monitoring remains available after STOP; stop the host stream to end monitoring. The browser has a separate MONITOR INPUT button that requests audio permission.
+Nine release suites exercise actual firmware WASM audio and controls plus the installer protocol: public, final, fx, release11, control-audit, device, shift-input, performance, installer. Hardware compiler checks pass: image 336792 B; data/BSS 64740/73728 B; pool 359968/368640 B, leaving the required 8 KiB headroom. Version 1.3 was installed and restart-verified on the development FM-1 (FM-1_915, CDC v1.3-tapedeck; idle CPU 14%). No external listening test, loaded-DSP hardware benchmark or indefinite stability claim is implied by these results.
 
-The three lamps below the VU meter appear only on ENV and GLOBAL and indicate the current subpage. Two 80 KiB tape slots retain the previous audio quality and length: imports up to 7.38 seconds at 22.05 kHz mono ADPCM; capture up to 5.85 seconds at 11.025 kHz mono ADPCM. SAVE replaces Tape II; it does not save patterns. Removing the third deck does not automatically enlarge the two slots.
-
-Additional release tests: pre-record monitoring/disconnect, mixed-output limiting, page-indicator pixels, removed-slot rejection, save/reboot, and reverse/FX/monitor stress. Hardware transport testing is recorded separately from listening validation.
-
-Release-device verification: FM-1_913 restart and TapeDeck v1.1-tapedeck console confirmed. A 15-second USB tone test activated monitoring without recording, with zero USB input underruns and no increase in late-audio count. This is a bounded test, not a guarantee of indefinite stability or an analog-output listening test.
-
-## Installer audit
-
-Install rechecks the current manifest before any device write and refuses a package cached from a different release. Reload an old installer tab before use. Historical .fwsc files have been moved out of the served installer directory. The sample uploader accepts both TapeDeck FM-1 and legacy Felucca USB names. On-device deletion: GLOBAL library (first page), K1 to select, REC, then REC again within three seconds. OCT− must be held; OCT+ toggles latch for the selected tape. Empty tapes cannot produce chops, and live USB monitoring is not stored sample material.
+Source build instructions are in source.zip/README.md. Credits: https://github.com/hugelton/Felucca and accompanying LICENSE/LICENSING.md. Firmware recovery uses the existing updater protocol; use the official M-VAVE updater and official firmware to return to stock.

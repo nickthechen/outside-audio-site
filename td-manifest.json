@@ -1,8 +1,8 @@
 {
-  "version": "1.1",
-  "product": "FM-1_913",
-  "file": "td-tapedeck-1.1.fwsc",
+  "version": "1.3",
+  "product": "FM-1_915",
+  "file": "td-tapedeck-1.3.fwsc",
   "bytes": 610407,
-  "sha256": "c0a245cab8fe6796bbc746154c9a604290e46fbc170ab5df52230ecfa3bdb6ab",
+  "sha256": "c25b53b19e765e0287287fe35f471eeeb5582a1a3b97396ce672bbe014ca82b2",
   "bundledSampleRecordings": 0
 }
